@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merry Christmas!!!!!!!!!!!!!!!!!!</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: linear-gradient(135deg,#1c014a 0%,#22557b 100%);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+    }
+    #snow-back { z-index: 1; }
+    #canvas { z-index: 2; }
+    #center-img {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      pointer-events: none;
+      max-width: 60vw;
+      max-height: 60vh;
+      animation: santamove 2.4s linear infinite alternate;
+      filter: drop-shadow(0px 20px 80px #fff6) drop-shadow(0px 2px 14px #60bfff);
+    }
+    @keyframes santamove {
+      0%   { transform: translate(-50%,-50%) rotate(-3deg) scale(1.04); }
+      50%  { transform: translate(-49%,-53%) rotate(5deg) scale(1.1);}
+      100% { transform: translate(-51%,-47%) rotate(-4deg) scale(0.95); }
+    }
+    #snow-front { z-index: 9; pointer-events: none;}
+    #xmas-message {
+      position: absolute;
+      left: 50%;
+      top: 11%;
+      transform: translateX(-50%);
+      z-index: 20;
+      font-family: 'Caveat', 'Segoe Script', cursive, fantasy;
+      font-size: 3.3rem;
+      letter-spacing: 0.14em;
+      color: #fffbe7;
+      text-shadow: 0 0 12px #a855f7, 0 0 26px #00d9ff, 0 0 8px #ffffff;
+      opacity: 0;
+      animation: fadeXmas 2.1s ease-out 0.5s forwards, glowXmas 4s infinite alternate;
+      user-select: none;
+      cursor: pointer;
+    }
+    @keyframes fadeXmas {
+      to { opacity: 1; }
+    }
+    @keyframes glowXmas {
+      0% { text-shadow: 0 0 12px #a855f7, 0 0 26px #00d9ff, 0 0 8px #fff;}
+      60%{ text-shadow: 0 0 24px #ffd700, 0 0 90px #fffbcc, 0 0 32px #ff5787;}
+      100%{ text-shadow: 0 0 18px #7cf7a8, 0 0 40px #fffbe7;}
+    }
+    .burst-snow {
+      position: absolute;
+      pointer-events: none;
+      z-index: 99;
+      border-radius: 50%;
+      background: radial-gradient(circle,#fff 90%,transparent 100%);
+      opacity: 0.7;
+      animation: burstSnow 0.8s linear forwards;
+    }
+    @keyframes burstSnow {
+      from { transform: scale(1); opacity:0.8;}
+      to   { transform: scale(7); opacity:0;}
+    }
+    #music-btn {
+      position: absolute;
+      left: 50%;
+      top: 80%;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      border: 3.5px solid #60bfff;
+      background: transparent;
+      color: #60bfff;
+      font-size: 2.8rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: block;
+      align-items: center;
+      justify-content: center;
+      outline: none;
+      transition: border-color 0.3s, color 0.25s;
+    }
+    #music-btn:hover, #music-btn:active {
+      border-color: #fffbe7;
+      color: #ffd700;
+    }
+    #music-btn .icon {
+      pointer-events: none;
+      font-size: 2.7rem;
+      color: inherit;
+      text-shadow: 0 2px 16px #60bfff77;
+      margin-top: 2px;
+      transition: color 0.2s;
+    }
+    #firework-canvas {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 12;
+    }
+  </style>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap">
+</head>
+<body>
+  <canvas id="snow-back"></canvas>
+  <canvas id="canvas"></canvas>
+  <img id="center-img" src="tex.png" alt="サンタ">
+  <canvas id="snow-front"></canvas>
+  <div id="xmas-message">Merry Christmas</div>
+  <canvas id="firework-canvas"></canvas>
+  <button id="music-btn"><span class="icon">&#9654;</span></button>
+  <audio id="bgm" src="music.mp3" loop></audio>
+  <script>
+    // ============== 音楽再生ボタン制御 ====================
+    const btn = document.getElementById('music-btn');
+    btn.style.display = "block";
+    const bgm = document.getElementById('bgm');
+    let musicBtnClicked = false;
+    btn.addEventListener('click', function() {
+      if (bgm.paused) {
+        bgm.currentTime = 0;
+        bgm.play();
+        btn.style.display = "none";
+        musicBtnClicked = true;
+      }
+    });
+    // ==================== 雪 ===============================
+    class Snow {
+      constructor(width, height) {
+        this.reset(width, height);
+      }
+      reset(width, height) {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height - height;
+        this.r = 1.2 + Math.random() * 3.8;
+        this.speedY = 0.7 + Math.random() * 1.5;
+        this.speedX = (Math.random() - 0.5) * 0.28;
+        this.opacity = 0.55 + Math.random() * 0.45;
+        this.wave = Math.random()*Math.PI*2;
+        this.waveSpeed = (Math.random()-0.5)*0.008;
+      }
+      update(width, height) {
+        this.y += this.speedY;
+        this.x += Math.sin(this.wave)*1.3 + this.speedX;
+        this.wave += this.waveSpeed;
+        if(this.y > height+7) this.reset(width, height);
+        if(this.x < -10 || this.x > width+10) this.x = Math.random()*width;
+      }
+      draw(ctx){
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = "#fff";
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+    }
+    // ========== 星(流れ星) ==========
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const snowBack = document.getElementById('snow-back');
+    const snowBackCtx = snowBack.getContext('2d');
+    const snowFront = document.getElementById('snow-front');
+    const snowFrontCtx = snowFront.getContext('2d');
+    const fireworkCanvas = document.getElementById('firework-canvas');
+    const fireworkCtx = fireworkCanvas.getContext('2d');
+    function resizeAll() {
+      // 画面サイズに全canvasを揃える
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width = w; canvas.height = h;
+      snowBack.width = w; snowBack.height = h;
+      snowFront.width = w; snowFront.height = h;
+      fireworkCanvas.width = w; fireworkCanvas.height = h;
+    }
+    class Star {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = canvas.width + Math.random() * 200;
+        this.y = Math.random() * canvas.height;
+        this.size = 3 + Math.floor(Math.random() * 4);
+        this.speed = this.size * 0.8;
+        this.tailLength = 10 + Math.floor(Math.random() * 12);
+        this.isSpecial = Math.random() < 0.08;
+      }
+      update() {
+        this.x -= this.speed;
+        if (this.x + this.tailLength < 0) this.reset();
+      }
+      draw() {
+        if (this.isSpecial) {
+          ctx.save();
+          ctx.shadowColor = "#ffd700";
+          ctx.shadowBlur = 20;
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = "#ffd700";
+          ctx.beginPath();
+          ctx.arc(this.x+this.size/2, this.y+this.size/2, this.size+5, 0, Math.PI*2);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.fillStyle = '#FFF8E7';
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+        for (let i = 1; i <= this.tailLength; i++) {
+          const alpha = 1 - (i / this.tailLength);
+          const tailX = this.x + i * this.size;
+          if (i % 2 === 0) {
+            ctx.globalAlpha = alpha * 0.7;
+            ctx.fillRect(tailX, this.y, this.size, this.size);
+          }
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+    const stars = [];
+    function initStars() {
+      stars.length = 0;
+      for (let i = 0; i < 32; i++) {
+        const star = new Star();
+        star.x = Math.random() * canvas.width;
+        star.speed = star.size * 0.8;
+        stars.push(star);
+      }
+    }
+    // ============== 雪のインスタンス大量生成 =====================
+    let snowBackArr = [];
+    let snowFrontArr = [];
+    function initSnow(arr, num, width, height) {
+      arr.length = 0;
+      for (let i = 0; i < num; i++) {
+        arr.push(new Snow(width, height));
+      }
+    }
+    // =========== 花火パーティクル ============
+    let fireworkParticles = [];
+    function spawnFirework(x, y) {
+      const colors = ['#FFD700', '#FF4F92', '#60bfff', '#B5FFFD', '#FFFFFF', '#A855F7', '#D1FF48', '#FFA600', '#00F47F'];
+      const numParticles = 24 + Math.floor(Math.random()*18);
+      for(let i=0; i<numParticles; ++i){
+        const angle = (2*Math.PI*i)/numParticles + Math.random()*0.18;
+        const speed = 2.6+Math.random()*2.0;
+        fireworkParticles.push({
+          x: x,
+          y: y,
+          vx: speed * Math.cos(angle),
+          vy: speed * Math.sin(angle),
+          life: 32+Math.random()*10,
+          age: 0,
+          color: colors[Math.floor(Math.random()*colors.length)],
+          size: 2.6+Math.random()*3.4,
+          fade: 0.008 + Math.random()*0.03
+        });
+      }
+    }
+    function renderFirework() {
+      // サイズはonResizeでのみ設定、省略
+      fireworkCtx.clearRect(0, 0, fireworkCanvas.width, fireworkCanvas.height);
+      for(let i=fireworkParticles.length-1; i>=0; --i){
+        const p = fireworkParticles[i];
+        fireworkCtx.save();
+        fireworkCtx.globalAlpha = Math.max(0, 0.8-p.age*p.fade);
+        fireworkCtx.beginPath();
+        fireworkCtx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+        fireworkCtx.fillStyle = p.color;
+        fireworkCtx.shadowColor = p.color;
+        fireworkCtx.shadowBlur = 12;
+        fireworkCtx.fill();
+        fireworkCtx.restore();
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.07;
+        p.vx *= 0.99;
+        p.vy *= 0.99;
+        p.age++;
+        if(p.age > p.life) fireworkParticles.splice(i,1);
+      }
+      requestAnimationFrame(renderFirework);
+    }
+    renderFirework();
+
+    // ================= アニメーション =================
+    function animate() {
+      // 背面雪
+      snowBackCtx.clearRect(0, 0, snowBack.width, snowBack.height);
+      snowBackArr.forEach(s => {
+        s.update(snowBack.width, snowBack.height);
+        s.draw(snowBackCtx);
+      });
+      // 星
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(28,57,98,0.97)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(star => {
+        star.update();
+        star.draw();
+      });
+      // 前面雪
+      snowFrontCtx.clearRect(0, 0, snowFront.width, snowFront.height);
+      snowFrontArr.forEach(s => {
+        s.update(snowFront.width, snowFront.height);
+        s.draw(snowFrontCtx);
+      });
+      requestAnimationFrame(animate);
+    }
+    // ========== 最初の初期化とリサイズ ===========
+    function onResize() {
+      resizeAll();
+      initStars();
+      initSnow(snowBackArr, 250, snowBack.width, snowBack.height);
+      initSnow(snowFrontArr, 140, snowFront.width, snowFront.height);
+    }
+    window.addEventListener('resize', onResize);
+    onResize();
+    animate();
+    // ==================== クリック snow/firework/star ====================
+    function showSnowBurst(x, y) {
+      const el = document.createElement("div");
+      el.className = "burst-snow";
+      el.style.left = `${x-22}px`;
+      el.style.top = `${y-26}px`;
+      el.style.width = "24px";
+      el.style.height = "24px";
+      document.body.appendChild(el);
+      setTimeout(() => { el.remove(); }, 850);
+      // 一時的に特別な星
+      stars.push({
+        x: x,
+        y: y,
+        size: 7,
+        tailLength: 18,
+        speed: 4.8,
+        isSpecial: true,
+        update:function(){
+          this.x -= this.speed;
+          if(this.x+this.tailLength < 0){
+            this.x = canvas.width+Math.random()*200;
+            this.y = Math.random()*canvas.height;
+          }
+        },
+        draw:Star.prototype.draw
+      });
+    }
+    // ボタン以外で花火と雪
+    document.body.addEventListener('click', function(e){
+      const btnRect = btn.getBoundingClientRect();
+      const bx = btnRect.left, by = btnRect.top, bw = btnRect.width, bh = btnRect.height;
+      if(e.clientX >= bx && e.clientX <= bx+bw && e.clientY >= by && e.clientY <= by+bh && btn.style.display !== "none"){
+        return;
+      }
+      showSnowBurst(e.clientX, e.clientY);
+      spawnFirework(e.clientX, e.clientY);
+    });
+    document.getElementById('xmas-message').addEventListener('click', function(e){
+      const rect = this.getBoundingClientRect();
+      showSnowBurst(rect.left+rect.width/2, rect.top+rect.height);
+      spawnFirework(rect.left+rect.width/2, rect.top+rect.height);
+    });
+    // ================== END ==================
+  </script>
+</body>
+</html>
