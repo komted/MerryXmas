@@ -27,18 +27,18 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      transform: translate(-50%, -50%);
       z-index: 5;
       pointer-events: none;
       max-width: 60vw;
       max-height: 60vh;
       animation: santamove 2.4s linear infinite alternate;
       filter: drop-shadow(0px 20px 80px #fff6) drop-shadow(0px 2px 14px #60bfff);
+      transform-origin: center center;
     }
     @keyframes santamove {
       0%   { transform: translate(-50%,-50%) rotate(-3deg) scale(1.04); }
-      50%  { transform: translate(-49%,-53%) rotate(5deg) scale(1.1);}
-      100% { transform: translate(-51%,-47%) rotate(-4deg) scale(0.95); }
+      50%  { transform: translate(-50%,-50%) rotate(5deg) scale(1.1);}
+      100% { transform: translate(-50%,-50%) rotate(-4deg) scale(0.95); }
     }
     #snow-front { z-index: 9; pointer-events: none;}
     #xmas-message {
